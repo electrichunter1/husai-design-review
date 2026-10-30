@@ -1,0 +1,21 @@
+name: Add a design
+description: Submit an SVG or PNG for the HUSAI review gallery.
+title: "Design submission: "
+body:
+  - type: markdown
+    attributes:
+      value: "Attach a self-contained SVG or still PNG under 5 MB. Include only the artwork. A maintainer reviews submissions before they appear in the gallery."
+  - type: upload
+    id: artwork
+    attributes:
+      label: Artwork
+      description: Attach the SVG or PNG file here.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Optional context, variations, or display preferences.
+    validations:
+      required: false

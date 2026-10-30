@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#12306b"><meta name="description" content="Add an SVG or PNG design to the HUSAI logo review gallery.">
+  <title>Add a design — HUSAI</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="contribute.css">
+  <script src="contribute.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header><a class="brand" href="./">HUSAI <span>Design review</span></a><a href="./">Back to gallery <span aria-hidden="true">↗</span></a></header>
+  <main id="main">
+    <section class="intro"><h1>Add a design.</h1><p>Put your next idea in the same gallery. Submit an SVG or PNG; it appears after a maintainer reviews and merges it.</p></section>
+    <div class="columns">
+      <section class="submit" aria-labelledby="submit-title"><h2 id="submit-title">Submit your artwork</h2>
+        <ol><li><strong>Export the design.</strong><span>Use a self-contained SVG or a still PNG, under 5 MB. Include only the artwork.</span></li><li><strong>Attach it on GitHub.</strong><span>Open the short submission form, attach your file, and add any useful notes. A GitHub account is required.</span></li><li><strong>Review, then publish.</strong><span>A maintainer checks the file and merges it. The gallery updates automatically with a neutral design ID.</span></li></ol>
+        <a class="primary" href="https://github.com/electrichunter1/husai-design-review/issues/new?template=design-submission.yml">Open submission form <span aria-hidden="true">↗</span></a>
+        <p class="quiet">Your GitHub submission itself is public.</p>
+      </section>
+      <section class="file-check" aria-labelledby="preview-title"><h2 id="preview-title">Check your file</h2><p>Preview it here before submitting. This check stays in your browser.</p>
+        <label class="file-label" for="artwork"><span>Choose an SVG or PNG</span><input id="artwork" type="file" accept="image/svg+xml,image/png,.svg,.png"></label>
+        <p id="file-status" role="status" aria-live="polite">No file selected.</p><div class="preview" id="preview" hidden><img id="art-preview" alt="Your selected artwork"></div>
+      </section>
+    </div>
+    <section class="advanced"><h2>Working from the repository?</h2><p>Use one command to validate and add a file, then open a pull request. Existing IDs stay stable; merged changes publish automatically.</p><pre><code>python3 scripts/add_design.py --file /path/to/design.svg
+python3 -m unittest discover -s tests
+python3 scripts/build_site.py</code></pre><a href="https://github.com/electrichunter1/husai-design-review/blob/main/CONTRIBUTING.md">Read the contribution guide <span aria-hidden="true">↗</span></a></section>
+  </main>
+  <footer><span>HUSAI · Harvard Undergraduate Society for Artificial Intelligence</span><a href="./">Explore the designs</a></footer>
+</body></html>
