@@ -120,6 +120,8 @@
     $('collection-note').textContent = view === 'original' ? 'One mark, explored through color and line.' : view === 'recent' ? 'Recent studies and variations.' : view === 'favorites' ? 'Your shortlist, ready to share.' : 'Browse the full collection.';
     $('favorite-count').textContent = favorites.size ? String(favorites.size) : ''; $('family-label').hidden = view !== 'original' || $('family').options.length < 2;
     $('load-more').hidden = shown >= list.length; $('load-more').textContent = `Show ${Math.min(60, list.length - shown)} more`;
+    $('load-controls').hidden = shown >= list.length;
+    document.querySelectorAll('[data-load-all]').forEach(button => { button.hidden = shown >= list.length; button.textContent = `Load all ${list.length.toLocaleString()}`; button.setAttribute('aria-label', `Load all ${list.length.toLocaleString()} designs`); });
     const empty = $('empty-state'); empty.hidden = list.length > 0; empty.replaceChildren();
     if (!list.length) {
       const noFavorites = view === 'favorites' && !favorites.size;
@@ -181,6 +183,7 @@
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; clearFilters(); }));
   ['search', 'format', 'family'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', () => { limit = 60; renderGallery(); }));
   $('load-more').addEventListener('click', () => { limit += 60; renderGallery(); }); $('clear-compare').addEventListener('click', () => { compared = []; persist(); refresh(); document.querySelector('.tab.active')?.focus({ preventScroll: true }); });
+  document.querySelectorAll('[data-load-all]').forEach(button => button.addEventListener('click', () => { limit = matches().length; renderGallery(); $('result-count').focus({ preventScroll: true }); }));
   $('open-comparison').addEventListener('click', () => { renderComparisonDialog(); $('compare-dialog').showModal(); $('compare-dialog').scrollTop = 0; });
   $('close-comparison').addEventListener('click', () => $('compare-dialog').close()); $('close-detail').addEventListener('click', () => $('design-dialog').close());
   for (const id of ['design-dialog', 'compare-dialog']) $(id).addEventListener('click', event => { if (event.target !== $(id)) return; const rect = $(id).getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) $(id).close(); });
