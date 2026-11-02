@@ -16,6 +16,27 @@ def safe_asset(path):
         raise ValueError('Missing artwork asset: ' + path)
     return q
 
+def read_collections(rows):
+    """Publish only supported neutral collections, preserving the curated order."""
+    path = ROOT / 'catalogue' / 'collections.json'
+    if not path.exists():
+        return {}
+    manifest = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(manifest, dict) or set(manifest) - {'beans'}:
+        raise ValueError('Unsupported curated collection')
+    collections = {}
+    known = {row['id'] for row in rows}
+    for key, source in manifest.items():
+        if not isinstance(source, dict) or source.get('label') != 'Bean studies':
+            raise ValueError('Use the neutral collection label Bean studies')
+        ids = source.get('ids')
+        if not isinstance(ids, list) or any(not isinstance(code, str) or code not in known for code in ids):
+            raise ValueError('Curated collections must contain existing design IDs')
+        if len(set(ids)) != len(ids):
+            raise ValueError('Duplicate curated collection ID')
+        collections[key] = {'label': 'Bean studies', 'ids': ids}
+    return collections
+
 def build(output):
     ensure_baseline_assets()
     data = read_catalogue(); rows = []
@@ -46,6 +67,7 @@ def build(output):
         rows.append(row); extra.append((row['image'], clean))
     if len({r['id'] for r in rows}) != len(rows):
         raise ValueError('Duplicate catalogue IDs')
+    collections = read_collections(rows)
     output = output.resolve()
     checkout = ROOT.resolve()
     if output in {checkout, checkout/'site', checkout/'catalogue', checkout/'submissions'} or checkout not in output.parents:
@@ -71,7 +93,7 @@ def build(output):
     sketch_count=sum(r['kind']=='sketch' for r in rows)
     counts = {'total':len(rows),'svg':svg_count,'sketch':sketch_count,'original':sum(r.get('collection')=='original' for r in rows),'recent':sum(r.get('collection')=='recent' for r in rows),'all':len(rows),'smallCompanions':sum(bool(r.get('smallImage')) for r in rows),'byKind':{'svg':svg_count,'sketch':sketch_count}}
     defaults = [code for code in data.get('meta',{}).get('defaultCompare',[]) if code in {r['id']for r in rows}][:4]
-    public = {'meta':{'title':'HUSAI design review','defaultCompare':defaults,'counts':counts},'designs':rows}
+    public = {'meta':{'title':'HUSAI design review','defaultCompare':defaults,'counts':counts,'collections':collections},'designs':rows}
     (output/'data.js').write_text('window.HUSAI_DATA = ' + json.dumps(public,ensure_ascii=False,separators=(',',':')) + ';\n',encoding='utf-8')
     (output/'catalogue.json').write_text(json.dumps(public,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
     (output/'.nojekyll').write_text('')
