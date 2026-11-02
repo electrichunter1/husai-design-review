@@ -52,6 +52,40 @@ class Contributions(unittest.TestCase):
         self.assertRegex(a['id'],r'^D-[A-F0-9]{12}$')
         self.assertNotIn('maker',a)
 
+    def test_collections_keep_curated_order_and_strip_extra_fields(self):
+        import build_site
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'catalogue').mkdir()
+            original=build_site.ROOT;build_site.ROOT=root
+            try:
+                self.assertEqual(build_site.read_collections([{'id':'D0001'}]),{})
+                manifest={'beans':{'label':'Bean studies','ids':['D0002','D0001'],'maker':'private label','scores':[9,8]}}
+                (root/'catalogue/collections.json').write_text(json.dumps(manifest))
+                self.assertEqual(build_site.read_collections([{'id':'D0001'},{'id':'D0002'}]),
+                                 {'beans':{'label':'Bean studies','ids':['D0002','D0001']}})
+            finally:
+                build_site.ROOT=original
+
+    def test_collections_reject_invalid_or_unknown_ids_and_labels(self):
+        import build_site
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);(root/'catalogue').mkdir()
+            original=build_site.ROOT;build_site.ROOT=root
+            try:
+                invalid=[[], {'other':{'label':'Bean studies','ids':[]}},
+                         {'beans':{'label':'Private maker','ids':[]}},
+                         {'beans':{'label':'Bean studies','ids':'D0001'}},
+                         {'beans':{'label':'Bean studies','ids':['D0002']}},
+                         {'beans':{'label':'Bean studies','ids':[{}]}},
+                         {'beans':{'label':'Bean studies','ids':['D0001','D0001']}}]
+                for manifest in invalid:
+                    with self.subTest(manifest=manifest):
+                        (root/'catalogue/collections.json').write_text(json.dumps(manifest))
+                        with self.assertRaises(ValueError):
+                            build_site.read_collections([{'id':'D0001'}])
+            finally:
+                build_site.ROOT=original
+
     def test_build_keeps_baseline_ids_and_additions_stable(self):
         import build_site
         with tempfile.TemporaryDirectory() as temp:
@@ -74,6 +108,7 @@ class Contributions(unittest.TestCase):
             self.assertEqual(first['designs'][0]['id'],'D0001')
             self.assertEqual(len(first['designs']),2)
             self.assertNotIn('maker',first['designs'][0])
+            self.assertEqual(first['meta']['collections'],{})
 
 if __name__=='__main__':
     unittest.main()

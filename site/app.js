@@ -8,6 +8,8 @@
   const pickKey = 'husai-public-review-picks-v1', previewKey = 'husai-public-review-preview-v1';
   const familyNames = { solid: 'Solid', 'color-mix': 'Color mix', gradient: 'Gradient', outline: 'Outline', mixed: 'Mixed', dark: 'Dark' };
   const known = values => Array.isArray(values) ? [...new Set(values.filter(id => validID(id) && byID.has(id)))] : [];
+  const beanIDs = known(window.HUSAI_DATA?.meta?.collections?.beans?.ids);
+  const defaultView = beanIDs.length ? 'beans' : 'all';
   let favorites = new Set(), compared = [], selection = { palette: 'original', variant: 'original' };
   try {
     const picks = JSON.parse(localStorage.getItem(pickKey));
@@ -24,7 +26,7 @@
     sharedURLActive = true; return true;
   }
   const openedShortlist = picksFromHash();
-  let view = openedShortlist && favorites.size ? 'favorites' : 'all';
+  let view = openedShortlist ? (favorites.size ? 'favorites' : 'all') : defaultView;
   let limit = 60, revision = 0, detailID = null, small = false, paletteGrid = false, toastTimer;
   const failedPreviews = new Set();
   const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 4.7a5.2 5.2 0 0 0-7.4 0L12 6l-1.3-1.3a5.2 5.2 0 0 0-7.4 7.4L12 21l8.7-8.9a5.2 5.2 0 0 0 0-7.4Z"></path></svg>';
@@ -102,7 +104,8 @@
   }
   function matches() {
     const query = $('search').value.trim().toUpperCase().replace(/^DESIGN\s*/, '');
-    return designs.filter(item => {
+    const collection = view === 'beans' ? beanIDs.map(id => byID.get(id)) : designs;
+    return collection.filter(item => {
       if (view === 'original' && item.collection !== 'original') return false;
       if (view === 'recent' && item.collection !== 'recent') return false;
       if (view === 'favorites' && !favorites.has(item.id)) return false;
@@ -117,7 +120,7 @@
     for (const item of list.slice(0, limit)) { const card = el('article', 'design-card'); card.append(artButton(item), cardLine(item)); gallery.append(card); }
     const shown = Math.min(limit, list.length);
     $('result-count').textContent = `${list.length.toLocaleString()} ${list.length === 1 ? 'design' : 'designs'}${shown < list.length ? ` · showing ${shown}` : ''}`;
-    $('collection-note').textContent = view === 'original' ? 'One mark, explored through color and line.' : view === 'recent' ? 'Recent studies and variations.' : view === 'favorites' ? 'Your shortlist, ready to share.' : 'Browse the full collection.';
+    $('collection-note').textContent = view === 'beans' ? 'Bean studies, with the latest additions first.' : view === 'original' ? 'One mark, explored through color and line.' : view === 'recent' ? 'Recent studies and variations.' : view === 'favorites' ? 'Your shortlist, ready to share.' : 'Browse the full collection.';
     $('favorite-count').textContent = favorites.size ? String(favorites.size) : ''; $('family-label').hidden = view !== 'original' || $('family').options.length < 2;
     $('load-more').hidden = shown >= list.length; $('load-more').textContent = `Show ${Math.min(60, list.length - shown)} more`;
     $('load-controls').hidden = shown >= list.length;
@@ -178,6 +181,7 @@
     const grid = $('comparison-grid'); grid.replaceChildren(); if (!compared.length) { $('compare-dialog').close(); return; }
     for (const id of compared) { const item = byID.get(id), card = el('article'); card.append(artButton(item), cardLine(item, false)); grid.append(card); }
   }
+  $('beans-tab').hidden = !beanIDs.length;
   const available = new Set(designs.filter(item => item.collection === 'original').map(item => item.treatmentFamily));
   Object.entries(familyNames).forEach(([key, text]) => { if (available.has(key)) { const option = el('option', '', text); option.value = key; $('family').append(option); } });
   document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => { view = button.dataset.view; clearFilters(); }));
